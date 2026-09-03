@@ -1,47 +1,42 @@
 async function fetchArchivedTodos() {
     const res = await fetch('/api/todos/archive');
     const tasks = await res.json();
-    renderArchive(tasks);
-}
-
-function renderArchive(tasks) {
     const archiveContainer = document.getElementById('archive-list');
-    archiveContainer.innerHTML = '';
-
+    
+    // The Cute "Empty State" from the screenshot
     if (tasks.length === 0) {
-        archiveContainer.innerHTML = '<p style="text-align:center; color: #8A7E72;">No past records found.</p>';
+        archiveContainer.innerHTML = `
+            <div style="font-size: 80px; margin-bottom: 20px;">🧸</div>
+            <h2 style="color: var(--text-dark); margin: 0;">No past tasks yet!</h2>
+            <p style="color: var(--text-muted); font-size: 15px;">Complete some to-dos on your dashboard first.</p>
+        `;
         return;
     }
 
-    // Group tasks by their created_date
+    archiveContainer.innerHTML = '';
     const groupedTasks = tasks.reduce((groups, task) => {
-        const date = task.created_date;
-        if (!groups[date]) groups[date] = [];
-        groups[date].push(task);
+        if (!groups[task.created_date]) groups[task.created_date] = [];
+        groups[task.created_date].push(task);
         return groups;
     }, {});
 
-    // Loop through each date group and create a cute badge + list
     for (const [date, dayTasks] of Object.entries(groupedTasks)) {
-        const dateBlock = document.createElement('div');
-        
-        // Format the date nicely (e.g., "August 15, 2026")
         const dateObj = new Date(date);
         const formattedDate = dateObj.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-
-        dateBlock.innerHTML = `
-            <div class="date-header">${formattedDate}</div>
-            <ul>
+        
+        archiveContainer.innerHTML += `
+            <div class="cute-card" style="margin-bottom: 30px; text-align: left;">
+                <h3 style="color: var(--primary); margin-top: 0;">${formattedDate}</h3>
                 ${dayTasks.map(task => `
-                    <li class="${task.completed ? 'completed' : ''}" style="cursor: default;">
-                        <span class="checkbox"></span>
-                        <span>${task.task}</span>
-                    </li>
+                    <div class="task-item completed" style="background: var(--bg-main); border: none; cursor: default;">
+                        <div class="task-left">
+                            <div class="task-checkbox" style="background: var(--primary);"></div>
+                            <span>${task.task}</span>
+                        </div>
+                    </div>
                 `).join('')}
-            </ul>
+            </div>
         `;
-        archiveContainer.appendChild(dateBlock);
     }
 }
-
 fetchArchivedTodos();

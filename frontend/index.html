@@ -3,43 +3,126 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Focus Tea Room</title>
+    <title>Focus Tea Room V2.0</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
-    <div class="header-container">
-        <h1>Focus Tea Room</h1>
-        <div class="vintage-clock" id="retro-time">--:--:--</div>
-    </div>
+    <nav class="top-nav">
+        <div class="logo">FOCUS TEA ROOM V2.0</div>
+        <div class="theme-picker">
+            <span style="font-size: 12px; font-weight: 700; color: var(--text-muted);">Tea Blend:</span>
+            <button class="theme-dot" style="background: #9b66ff;" data-color="#9b66ff"></button>
+            <button class="theme-dot" style="background: #10b981;" data-color="#10b981"></button>
+            <button class="theme-dot" style="background: #0ea5e9;" data-color="#0ea5e9"></button>
+            <button class="theme-dot" style="background: #f43f5e;" data-color="#f43f5e"></button>
+            <button class="theme-dot" style="background: #f59e0b;" data-color="#f59e0b"></button>
+        </div>
+    </nav>
 
     <div class="dashboard-grid">
-        <!-- Timer Card -->
-        <div class="card">
-            <h2>Deep Work Session</h2>
-            <div class="timer-display" id="time-display">25:00</div>
-            <div class="timer-controls">
-                <button id="start-btn">Start</button>
-                <button id="pause-btn" class="secondary">Pause</button>
-                <button id="reset-btn" class="secondary">Reset</button>
+        
+        <!-- Left Column -->
+        <div class="col">
+            <div class="cute-card">
+                <div class="card-header"><span style="margin: 0 auto">⏰ LOCAL TIME & DATE</span></div>
+                
+                <div class="analog-clock-container">
+                    <span class="clock-num clock-12">12</span>
+                    <span class="clock-num clock-3">3</span>
+                    <span class="clock-num clock-6">6</span>
+                    <span class="clock-num clock-9">9</span>
+                    <div class="clock-hand hand-hour" id="hand-hour"></div>
+                    <div class="clock-hand hand-min" id="hand-min"></div>
+                    <div class="clock-hand hand-sec" id="hand-sec"></div>
+                    <div class="clock-center"></div>
+                </div>
+                
+                <div style="font-size: 12px; font-weight: 700; color: var(--text-muted); margin-bottom: 30px;" id="digital-time">
+                    00:00:00 • Loading...
+                </div>
+
+                <div class="card-header"><span style="margin: 0 auto">FOCUS TIME ACCUMULATED</span></div>
+                <div class="stats-pills">
+                    <div class="pill active">Day</div>
+                    <div class="pill">Week</div>
+                    <div class="pill">Month</div>
+                    <div class="pill">Year</div>
+                </div>
+                <h2 style="color: var(--primary); margin: 10px 0;" id="accum-day">0h 0m</h2>
             </div>
         </div>
 
-        <!-- Todo Card -->
-        <div class="card">
-            <h2>Today's Brew</h2>
-            <div class="todo-input-group">
-                <input type="text" id="todo-input" placeholder="What needs to be done?">
-                <button id="add-todo-btn">Add</button>
-            </div>
-            <ul id="todo-list">
-                <!-- Items inject here -->
-            </ul>
-        </div>
-    </div>
+        <!-- Center Column -->
+        <div class="col">
+            <div class="cute-card">
+                <div class="status-pill" id="status-badge">PAUSED / READY</div>
+                <h2 style="margin: 0 0 5px 0;">Focus Tea Room</h2>
+                <p style="font-size: 13px; color: var(--text-muted); margin: 0 0 20px 0;">Brew your focus, one cup at a time.</p>
 
-    <div style="margin-top: 40px;">
-        <button class="secondary" onclick="window.location.href='archive.html'">View Past Records</button>
+                <div style="font-size: 40px;">🫖</div>
+                <p style="font-size: 12px; font-weight: 700; color: var(--primary);" id="stage-text">Stage 1: Warming Kettle</p>
+
+                <div class="preset-row">
+                    <button class="preset-btn" data-time="15">15m</button>
+                    <button class="preset-btn active" data-time="25">25m</button>
+                    <button class="preset-btn" data-time="45">45m</button>
+                    <button class="preset-btn" data-time="60">60m</button>
+                </div>
+
+                <div class="timer-display" id="time-display">25:00</div>
+
+                <div class="main-controls">
+                    <button class="btn-start" id="start-btn">Start</button>
+                    <button class="btn-pause" id="pause-btn">Pause</button>
+                    <button class="btn-reset" id="reset-btn">Reset</button>
+                </div>
+
+                <div class="audio-controls">
+                    <button class="audio-btn" id="btn-rain">🌧️ Rain Audio</button>
+                    <button class="audio-btn active" id="btn-chime">🔔 Chime: ON</button>
+                </div>
+
+                <div style="margin-top: 30px; font-size: 12px; font-weight: 700; color: var(--text-muted);">
+                    🎯 Daily Target (<span id="cups-count">0/4</span> Cups) <span style="color: var(--primary)" id="cups-left">4 cups left</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column -->
+        <div class="col">
+            <!-- Study Tasks -->
+            <div class="cute-card">
+                <div class="card-header">
+                    <span>📝 STUDY TASKS</span>
+                    <a href="archive.html" style="text-decoration: none;">
+                        <span class="badge" style="background: var(--btn-reset-bg); color: var(--btn-reset-text); cursor: pointer;">📁 Archive (<span id="archive-count">0</span>)</span>
+                    </a>
+                </div>
+                
+                <div class="input-group">
+                    <input type="text" id="todo-input" placeholder="Add a task...">
+                    <button id="add-todo-btn">Add</button>
+                </div>
+                <div id="todo-list">
+                    <!-- Tasks load here -->
+                </div>
+            </div>
+
+            <!-- Brew Log -->
+            <div class="cute-card">
+                <div class="card-header"><span>☕ BREW LOG (SESSIONS)</span></div>
+                <table class="brew-table">
+                    <thead>
+                        <tr><th>TIME</th><th>DUR</th><th>STATUS</th></tr>
+                    </thead>
+                    <tbody id="brew-log-body">
+                        <!-- Sessions load here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
     </div>
 
     <script src="app.js"></script>

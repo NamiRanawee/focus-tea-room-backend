@@ -3,20 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tea Room Archives</title>
+    <title>Past Achievements</title>
     <link rel="stylesheet" href="styles.css">
+    <style>
+        .archive-header { max-width: 800px; margin: 40px auto; padding: 24px; border-radius: 24px; background: white; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 10px 40px rgba(155, 102, 255, 0.08);}
+        .back-btn { background: var(--primary-soft); color: var(--primary); text-decoration: none; padding: 10px 20px; border-radius: 50px; font-weight: 700; font-size: 14px;}
+        .archive-content { max-width: 800px; margin: 0 auto; text-align: center; padding-top: 50px;}
+    </style>
 </head>
 <body>
 
-    <div class="header-container">
-        <h1>Past Records</h1>
-        <button class="secondary" onclick="window.location.href='index.html'">Back to Dashboard</button>
+    <div class="archive-header">
+        <div style="text-align: left;">
+            <h2 style="margin: 0; color: var(--text-dark);">🎀 Past Achievements</h2>
+            <p style="margin: 5px 0 0 0; color: var(--text-muted); font-size: 14px;">Look at all the amazing things you've accomplished! 🍓☁️</p>
+        </div>
+        <a href="index.html" class="back-btn">← Back to Timer</a>
     </div>
 
-    <div class="card" style="width: 100%; max-width: 900px;">
-        <div id="archive-list">
-            <!-- Grouped past items inject here -->
-        </div>
+    <div class="archive-content" id="archive-list">
+        <!-- Content injects here via JS -->
     </div>
 
     <script src="archive.js"></script>
