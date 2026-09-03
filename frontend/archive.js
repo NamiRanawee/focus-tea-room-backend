@@ -1,9 +1,14 @@
 async function fetchArchivedTodos() {
     const res = await fetch('/api/todos/archive');
-    const tasks = await res.json();
     const archiveContainer = document.getElementById('archive-list');
     
-    // The Cute "Empty State" from the screenshot
+    if (!res.ok) {
+        archiveContainer.innerHTML = `<p style="color: var(--text-muted);">Failed to load achievements.</p>`;
+        return;
+    }
+    
+    const tasks = await res.json();
+    
     if (tasks.length === 0) {
         archiveContainer.innerHTML = `
             <div style="font-size: 80px; margin-bottom: 20px;">🧸</div>

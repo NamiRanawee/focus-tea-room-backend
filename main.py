@@ -9,7 +9,7 @@ from pydantic import BaseModel
 
 app = FastAPI(title="Focus Tea Room V2.0 API")
 
-# --- Initialize Database ---
+# Initialize Database Tables
 def init_db():
     conn = sqlite3.connect("todos.db")
     c = conn.cursor()
@@ -22,7 +22,6 @@ def init_db():
             created_date TEXT NOT NULL
         )
     """)
-    # New table to track your completed focus sessions
     c.execute("""
         CREATE TABLE IF NOT EXISTS sessions (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -38,13 +37,28 @@ def init_db():
 
 init_db()
 
-# --- Pydantic Models ---
-class TaskCreate(BaseModel): task: str
-class TaskResponse(BaseModel): id: int; task: str; completed: bool; created_date: str
-class SessionCreate(BaseModel): duration_minutes: int; status: str
-class SessionResponse(BaseModel): id: int; duration_minutes: int; status: str; created_date: str; created_time: str
+# Pydantic Schemas
+class TaskCreate(BaseModel):
+    task: str
 
-# --- Tasks Endpoints ---
+class TaskResponse(BaseModel):
+    id: int
+    task: str
+    completed: bool
+    created_date: str
+
+class SessionCreate(BaseModel):
+    duration_minutes: int
+    status: str
+
+class SessionResponse(BaseModel):
+    id: int
+    duration_minutes: int
+    status: str
+    created_date: str
+    created_time: str
+
+# Tasks API
 @app.post("/api/todos", response_model=TaskResponse)
 def add_todo(payload: TaskCreate):
     today = date.today().isoformat()
@@ -94,7 +108,7 @@ def delete_todo(task_id: int):
     conn.close()
     return {"status": "success"}
 
-# --- Sessions (Brew Log) Endpoints ---
+# Sessions API
 @app.post("/api/sessions", response_model=SessionResponse)
 def add_session(payload: SessionCreate):
     today = date.today().isoformat()
@@ -123,13 +137,13 @@ def get_session_stats():
     today = date.today().isoformat()
     conn = sqlite3.connect("todos.db")
     c = conn.cursor()
-    c.execute("SELECT SUM(duration_minutes) FROM sessions WHERE created_date = ? AND status = 'Completed'", (today,))
+    c.execute("SELECT SUM(duration_minutes) FROM sessions WHERE created_date = ? AND status = 'Complete'", (today,))
     today_mins = c.fetchone()[0] or 0
-    c.execute("SELECT COUNT(id) FROM sessions WHERE created_date = ? AND status = 'Completed'", (today,))
+    c.execute("SELECT COUNT(id) FROM sessions WHERE created_date = ? AND status = 'Complete'", (today,))
     today_cups = c.fetchone()[0] or 0
     conn.close()
     return {"day_mins": today_mins, "today_cups": today_cups}
 
-# --- Serve Static Assets and Frontend HTML ---
+# Mount Frontend Static Files
 if os.path.exists("frontend"):
     app.mount("/", StaticFiles(directory="frontend", html=True), name="frontend")

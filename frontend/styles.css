@@ -31,7 +31,7 @@ body {
 /* Header */
 .top-nav {
     max-width: 1100px;
-    margin: 0 auto 30px auto;
+    margin: 0 auto 25px auto;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -88,13 +88,64 @@ body {
 .pill { padding: 4px 12px; border-radius: 12px; font-size: 11px; font-weight: 700; color: var(--text-muted); background: white;}
 .pill.active { background: var(--primary); color: white; }
 
-/* Timer Center */
+/* Teapot & Steam Animation */
+.tea-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 10px 0 0 0;
+    height: 95px;
+}
+.steam-svg {
+    height: 28px;
+    overflow: visible;
+}
+.steam-line {
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+/* Animation triggers when timer runs */
+.brewing .steam-line {
+    animation: riseSteam 2s infinite ease-in-out;
+}
+.brewing .steam-1 { animation-delay: 0s; }
+.brewing .steam-2 { animation-delay: 0.6s; }
+.brewing .steam-3 { animation-delay: 1.2s; }
+
+@keyframes riseSteam {
+    0% {
+        opacity: 0;
+        transform: translateY(4px) scaleX(0.8);
+    }
+    50% {
+        opacity: 0.85;
+        transform: translateY(-6px) scaleX(1.1);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-16px) scaleX(0.9);
+    }
+}
+
+.brewing .teapot-svg {
+    animation: teapotGiggle 3s infinite ease-in-out;
+}
+
+@keyframes teapotGiggle {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    25% { transform: translateY(-2px) rotate(-1.5deg); }
+    75% { transform: translateY(1px) rotate(1.5deg); }
+}
+
+/* Timer Display */
 .status-pill { display: inline-block; background: var(--primary-soft); color: var(--primary); font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 20px; margin-bottom: 15px; }
-.preset-row { display: flex; justify-content: center; gap: 10px; margin: 20px 0;}
+.preset-row { display: flex; justify-content: center; gap: 10px; margin: 15px 0;}
 .preset-btn { background: var(--primary-soft); color: var(--primary); border: none; padding: 8px 16px; border-radius: 20px; font-weight: 700; cursor: pointer;}
 .preset-btn.active { background: var(--primary); color: white; }
-.timer-display { font-size: 4.5rem; font-weight: 800; color: var(--text-dark); margin: 20px 0;}
+.timer-display { font-size: 4.5rem; font-weight: 800; color: var(--text-dark); margin: 15px 0;}
 
+/* Buttons */
 .main-controls { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px;}
 .main-controls button { padding: 12px 24px; border-radius: 24px; font-weight: 700; border: none; cursor: pointer; transition: transform 0.2s;}
 .main-controls button:hover { transform: translateY(-2px); }
@@ -113,13 +164,13 @@ body {
 
 .task-item { display: flex; align-items: center; justify-content: space-between; padding: 12px; border: 1px solid var(--border-soft); border-radius: 12px; margin-bottom: 10px; font-size: 13px; text-align: left;}
 .task-item.completed { opacity: 0.6; text-decoration: line-through; }
-.task-left { display: flex; align-items: center; gap: 10px; }
+.task-left { display: flex; align-items: center; gap: 10px; cursor: pointer; }
 .task-checkbox { width: 18px; height: 18px; border: 2px solid var(--primary); border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center;}
 .task-item.completed .task-checkbox { background: var(--primary); }
 .task-item.completed .task-checkbox::after { content: "✓"; color: white; font-size: 12px; }
 .btn-delete { background: none; border: none; color: var(--btn-reset-text); cursor: pointer; font-weight: bold;}
 
-/* Brew Log */
+/* Brew Log Table */
 .brew-table { width: 100%; border-collapse: collapse; font-size: 12px; text-align: left;}
 .brew-table th { color: var(--text-muted); padding-bottom: 10px; border-bottom: 1px solid var(--border-soft);}
 .brew-table td { padding: 10px 0; color: var(--text-dark);}

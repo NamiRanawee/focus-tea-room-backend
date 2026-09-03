@@ -7,13 +7,12 @@ document.querySelectorAll('.theme-dot').forEach(dot => {
     });
 });
 
-// --- Clock Logic ---
+// --- Clock Engine ---
 function updateClocks() {
     const now = new Date();
-    // Digital
     document.getElementById('digital-time').innerText = 
         `${now.toLocaleTimeString('en-US')} • ${now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}`;
-    // Analog
+    
     const secs = now.getSeconds();
     const mins = now.getMinutes();
     const hours = now.getHours();
@@ -24,9 +23,16 @@ function updateClocks() {
 setInterval(updateClocks, 1000);
 updateClocks();
 
-// --- Audio Synthesizer (No downloads needed!) ---
+// --- Audio Synthesizer ---
 let chimeEnabled = true;
-const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+let audioCtx = null;
+
+function getAudioContext() {
+    if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    return audioCtx;
+}
 
 document.getElementById('btn-chime').addEventListener('click', (e) => {
     chimeEnabled = !chimeEnabled;
@@ -36,51 +42,59 @@ document.getElementById('btn-chime').addEventListener('click', (e) => {
 
 function playChime() {
     if (!chimeEnabled) return;
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
+    const ctx = getAudioContext();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
     osc.connect(gain);
-    gain.connect(audioCtx.destination);
+    gain.connect(ctx.destination);
     osc.type = 'sine';
-    osc.frequency.setValueAtTime(880, audioCtx.currentTime); // A5 note
-    osc.frequency.exponentialRampToValueAtTime(440, audioCtx.currentTime + 0.5);
-    gain.gain.setValueAtTime(0, audioCtx.currentTime);
-    gain.gain.linearRampToValueAtTime(0.5, audioCtx.currentTime + 0.05);
-    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 1);
-    osc.start(); osc.stop(audioCtx.currentTime + 1);
+    osc.frequency.setValueAtTime(880, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.5);
+    gain.gain.setValueAtTime(0, ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.5, ctx.currentTime + 0.05);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1);
+    osc.start();
+    osc.stop(ctx.currentTime + 1);
 }
 
-// Rain Generator
-let noiseNode;
+// Rain Audio Synthesizer
+let noiseNode = null;
 document.getElementById('btn-rain').addEventListener('click', (e) => {
+    const ctx = getAudioContext();
     if (noiseNode) {
-        noiseNode.stop(); noiseNode = null;
+        noiseNode.stop();
+        noiseNode = null;
         e.target.classList.remove('active');
         return;
     }
-    const bufferSize = audioCtx.sampleRate * 2;
-    const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+    const bufferSize = ctx.sampleRate * 2;
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
     const output = buffer.getChannelData(0);
-    for (let i = 0; i < bufferSize; i++) output[i] = (Math.random() * 2 - 1) * 0.1; // Soft white noise
+    for (let i = 0; i < bufferSize; i++) {
+        output[i] = (Math.random() * 2 - 1) * 0.1;
+    }
     
-    noiseNode = audioCtx.createBufferSource();
+    noiseNode = ctx.createBufferSource();
     noiseNode.buffer = buffer;
     noiseNode.loop = true;
     
-    const filter = audioCtx.createBiquadFilter();
+    const filter = ctx.createBiquadFilter();
     filter.type = 'lowpass';
-    filter.frequency.value = 800; // Muffles noise to sound like rain
+    filter.frequency.value = 800;
     
     noiseNode.connect(filter);
-    filter.connect(audioCtx.destination);
+    filter.connect(ctx.destination);
     noiseNode.start();
     e.target.classList.add('active');
 });
 
-// --- Timer Logic ---
+// --- Timer & Teapot Animation Engine ---
 let timerInterval = null;
-let currentDuration = 25; // default 25m
+let currentDuration = 25;
 let timeLeft = currentDuration * 60;
 let isRunning = false;
+
+const teaContainer = document.getElementById('tea-container');
 
 function formatTime(seconds) {
     const m = Math.floor(seconds / 60).toString().padStart(2, '0');
@@ -90,7 +104,7 @@ function formatTime(seconds) {
 
 document.querySelectorAll('.preset-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
-        if(isRunning) return;
+        if (isRunning) return;
         document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
         e.target.classList.add('active');
         currentDuration = parseInt(e.target.getAttribute('data-time'));
@@ -104,6 +118,7 @@ document.getElementById('start-btn').addEventListener('click', () => {
     if (isRunning) return;
     isRunning = true;
     document.getElementById('status-badge').innerText = "BREWING FOCUS...";
+    teaContainer.classList.add('brewing'); // Triggers steam animation
     
     clearInterval(timerInterval);
     timerInterval = setInterval(async () => {
@@ -113,6 +128,7 @@ document.getElementById('start-btn').addEventListener('click', () => {
         } else {
             clearInterval(timerInterval);
             isRunning = false;
+            teaContainer.classList.remove('brewing');
             playChime();
             document.getElementById('status-badge').innerText = "SESSION COMPLETE!";
             await fetch('/api/sessions', {
@@ -128,27 +144,29 @@ document.getElementById('start-btn').addEventListener('click', () => {
 document.getElementById('pause-btn').addEventListener('click', () => {
     clearInterval(timerInterval);
     isRunning = false;
+    teaContainer.classList.remove('brewing');
     document.getElementById('status-badge').innerText = "PAUSED / READY";
 });
 
 document.getElementById('reset-btn').addEventListener('click', () => {
     clearInterval(timerInterval);
     isRunning = false;
+    teaContainer.classList.remove('brewing');
     timeLeft = currentDuration * 60;
     document.getElementById('time-display').innerText = formatTime(timeLeft);
     document.getElementById('status-badge').innerText = "PAUSED / READY";
 });
 
-// --- Tasks Logic ---
+// --- Tasks CRUD ---
 const todoInput = document.getElementById('todo-input');
 const todoList = document.getElementById('todo-list');
 
 async function fetchTodos() {
     const res = await fetch('/api/todos/today');
+    if (!res.ok) return;
     const tasks = await res.json();
     todoList.innerHTML = '';
     
-    // Calculate how many are checked for the Archive counter
     const completedCount = tasks.filter(t => t.completed).length;
     document.getElementById('archive-count').innerText = completedCount;
 
@@ -162,12 +180,10 @@ async function fetchTodos() {
             </div>
             <button class="btn-delete">x</button>
         `;
-        // Toggle complete
         div.querySelector('.task-left').addEventListener('click', async () => {
             await fetch(`/api/todos/${task.id}`, { method: 'PUT' });
             fetchTodos();
         });
-        // Delete completely
         div.querySelector('.btn-delete').addEventListener('click', async (e) => {
             e.stopPropagation();
             await fetch(`/api/todos/${task.id}`, { method: 'DELETE' });
@@ -188,12 +204,12 @@ document.getElementById('add-todo-btn').addEventListener('click', async () => {
     fetchTodos();
 });
 
-// --- Stats & Brew Log Logic ---
+// --- Brew Log Stats ---
 async function fetchStats() {
     const logRes = await fetch('/api/sessions/today');
     const logBody = document.getElementById('brew-log-body');
     logBody.innerHTML = '';
-    if(logRes.ok) {
+    if (logRes.ok) {
         const sessions = await logRes.json();
         sessions.forEach(s => {
             logBody.innerHTML += `<tr><td>${s.created_time}</td><td>${s.duration_minutes}m</td><td><span class="badge">${s.status}</span></td></tr>`;
@@ -201,7 +217,7 @@ async function fetchStats() {
     }
 
     const statRes = await fetch('/api/sessions/stats');
-    if(statRes.ok) {
+    if (statRes.ok) {
         const stats = await statRes.json();
         document.getElementById('accum-day').innerText = `${Math.floor(stats.day_mins / 60)}h ${stats.day_mins % 60}m`;
         document.getElementById('cups-count').innerText = `${stats.today_cups}/4`;

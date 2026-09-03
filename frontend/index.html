@@ -58,9 +58,27 @@
             <div class="cute-card">
                 <div class="status-pill" id="status-badge">PAUSED / READY</div>
                 <h2 style="margin: 0 0 5px 0;">Focus Tea Room</h2>
-                <p style="font-size: 13px; color: var(--text-muted); margin: 0 0 20px 0;">Brew your focus, one cup at a time.</p>
+                <p style="font-size: 13px; color: var(--text-muted); margin: 0 0 10px 0;">Brew your focus, one cup at a time.</p>
 
-                <div style="font-size: 40px;">🫖</div>
+                <!-- Vector Animated Teapot & Rising Steam -->
+                <div class="tea-container" id="tea-container">
+                    <svg class="steam-svg" viewBox="0 0 40 30" width="40" height="30">
+                        <path class="steam-line steam-1" d="M 12 25 Q 8 15 12 5" stroke="var(--primary)" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                        <path class="steam-line steam-2" d="M 20 25 Q 24 15 20 5" stroke="var(--primary)" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                        <path class="steam-line steam-3" d="M 28 25 Q 24 15 28 5" stroke="var(--primary)" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                    </svg>
+                    <svg class="teapot-svg" viewBox="0 0 64 64" width="65" height="65">
+                        <path d="M 16 32 C 16 22, 48 22, 48 32 C 48 48, 16 48, 16 32 Z" fill="var(--primary-soft)" stroke="var(--primary)" stroke-width="3" stroke-linejoin="round"/>
+                        <path d="M 24 24 C 24 18, 40 18, 40 24 Z" fill="var(--primary-soft)" stroke="var(--primary)" stroke-width="3"/>
+                        <circle cx="32" cy="18" r="3" fill="var(--primary)"/>
+                        <path d="M 16 28 C 6 28, 6 42, 16 42" fill="none" stroke="var(--primary)" stroke-width="3" stroke-linecap="round"/>
+                        <path d="M 48 32 C 56 28, 58 20, 56 18 C 54 18, 52 24, 46 26" fill="var(--primary)" stroke="var(--primary)" stroke-width="2" stroke-linejoin="round"/>
+                        <circle cx="28" cy="34" r="2" fill="var(--primary)"/>
+                        <circle cx="36" cy="34" r="2" fill="var(--primary)"/>
+                        <path d="M 30 38 Q 32 40 34 38" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </div>
+
                 <p style="font-size: 12px; font-weight: 700; color: var(--primary);" id="stage-text">Stage 1: Warming Kettle</p>
 
                 <div class="preset-row">
@@ -83,7 +101,7 @@
                     <button class="audio-btn active" id="btn-chime">🔔 Chime: ON</button>
                 </div>
 
-                <div style="margin-top: 30px; font-size: 12px; font-weight: 700; color: var(--text-muted);">
+                <div style="margin-top: 25px; font-size: 12px; font-weight: 700; color: var(--text-muted);">
                     🎯 Daily Target (<span id="cups-count">0/4</span> Cups) <span style="color: var(--primary)" id="cups-left">4 cups left</span>
                 </div>
             </div>
@@ -91,7 +109,6 @@
 
         <!-- Right Column -->
         <div class="col">
-            <!-- Study Tasks -->
             <div class="cute-card">
                 <div class="card-header">
                     <span>📝 STUDY TASKS</span>
@@ -109,7 +126,6 @@
                 </div>
             </div>
 
-            <!-- Brew Log -->
             <div class="cute-card">
                 <div class="card-header"><span>☕ BREW LOG (SESSIONS)</span></div>
                 <table class="brew-table">
