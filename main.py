@@ -1,10 +1,16 @@
-from fastapi import FastAPI, HTTPException, Depends
-from pydantic import BaseModel
-from typing import List
+import os
 import sqlite3
-from datetime import datetime, date
+from datetime import date
+from typing import List
 
-# Initialize Database for Tasks
+from fastapi import FastAPI, HTTPException
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel
+
+app = FastAPI(title="Focus Tea Room API")
+
+# --- Initialize Database ---
 def init_todo_db():
     conn = sqlite3.connect("todos.db")
     c = conn.cursor()
@@ -22,8 +28,6 @@ def init_todo_db():
 
 init_todo_db()
 
-app = FastAPI(title="Focus Tea Room API")
-
 # --- Pydantic Models ---
 class TaskCreate(BaseModel):
     task: str
@@ -34,10 +38,9 @@ class TaskResponse(BaseModel):
     completed: bool
     created_date: str
 
-# --- Endpoints ---
+# --- API Endpoints ---
 @app.post("/api/todos", response_model=TaskResponse)
 def add_todo(payload: TaskCreate):
-    # Note: Pass your current_user dependency here to lock to user_id
     today = date.today().isoformat()
     conn = sqlite3.connect("todos.db")
     c = conn.cursor()
@@ -63,7 +66,6 @@ def get_archived_todos():
     today = date.today().isoformat()
     conn = sqlite3.connect("todos.db")
     c = conn.cursor()
-    # Fetch everything BEFORE today, ordered by newest first
     c.execute("SELECT id, task, completed, created_date FROM tasks WHERE created_date < ? ORDER BY created_date DESC", (today,))
     rows = c.fetchall()
     conn.close()
@@ -77,3 +79,10 @@ def toggle_todo(task_id: int):
     conn.commit()
     conn.close()
     return {"status": "success"}
+
+# --- Serve Static Assets and Frontend HTML ---
+if os.path.exists("static"):
+    app.mount("/static", StaticFiles(directory="static"), name="static")
+
+if os.path.exists("frontend"):
+    app.mount("/", StaticFiles(directory="frontend", html=True), name="frontend")
