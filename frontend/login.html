@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Welcome to Focus Tea Room 🍵</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            matcha: {
+              50: '#f4f7f4',
+              100: '#e3ebe3',
+              500: '#709775',
+              600: '#8fb996',
+              800: '#415d43',
+              900: '#111d13',
+            },
+            tea: {
+              cream: '#fdfbf7',
+              warm: '#f5ebe0',
+              accent: '#d4a373',
+              amber: '#bc6c25',
+              dark: '#2f3e46'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Quicksand:wght@500;600;700&display=swap');
+
+    body {
+      font-family: 'Quicksand', sans-serif;
+      background-color: #f7f4ef;
+      background-image: radial-gradient(#e0d7c6 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+
+    h1, h2, h3, .font-heading {
+      font-family: 'Fredoka', cursive;
+    }
+  </style>
+</head>
+<body class="min-h-screen text-tea-dark flex flex-col justify-center items-center p-4">
+
+  <!-- Top Navigation Link -->
+  <a href="/" class="absolute top-6 left-6 text-sm font-bold text-matcha-800 hover:text-matcha-500 bg-white/80 backdrop-blur-md px-4 py-2 rounded-2xl border border-tea-warm transition flex items-center gap-2 shadow-sm">
+    ← Back to Tea Room
+  </a>
+
+  <!-- Main Cute Auth Card -->
+  <div class="w-full max-w-md bg-white/95 backdrop-blur-md border border-tea-warm rounded-3xl p-8 shadow-xl relative overflow-hidden">
+    
+    <!-- Header Banner -->
+    <div class="flex flex-col items-center text-center mb-6">
+      <div class="w-16 h-16 rounded-3xl bg-matcha-100 border border-matcha-500/20 flex items-center justify-center text-3xl shadow-inner mb-3">
+        🍵
+      </div>
+      <h1 class="text-2xl font-bold text-matcha-900" id="card-title">Welcome Back</h1>
+      <p class="text-xs text-matcha-500 font-semibold mt-1" id="card-subtitle">
+        Log in to access your tea tasks & focus history
+      </p>
+    </div>
+
+    <!-- Mode Switcher Tabs -->
+    <div class="flex bg-tea-warm/60 p-1 rounded-2xl mb-6">
+      <button id="tab-login" class="flex-1 py-2 text-xs font-bold rounded-xl transition bg-white text-matcha-900 shadow-sm">
+        Log In
+      </button>
+      <button id="tab-signup" class="flex-1 py-2 text-xs font-bold rounded-xl transition text-matcha-500 hover:text-matcha-900">
+        Sign Up
+      </button>
+    </div>
+
+    <!-- Login Form -->
+    <form id="login-form" class="space-y-4">
+      <div>
+        <label class="block text-xs font-bold text-matcha-800 mb-1">Email Address</label>
+        <input 
+          type="email" 
+          id="login-email" 
+          required 
+          placeholder="tea.lover@example.com" 
+          class="w-full bg-tea-cream border border-tea-warm focus:border-matcha-500 rounded-2xl px-4 py-3 text-sm outline-none transition shadow-sm"
+        />
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-matcha-800 mb-1">Password</label>
+        <input 
+          type="password" 
+          id="login-password" 
+          required 
+          placeholder="••••••••" 
+          class="w-full bg-tea-cream border border-tea-warm focus:border-matcha-500 rounded-2xl px-4 py-3 text-sm outline-none transition shadow-sm"
+        />
+      </div>
+      <button type="submit" class="w-full bg-matcha-500 hover:bg-matcha-800 text-white font-bold py-3 rounded-2xl transition shadow-md active:scale-95 text-sm">
+        Enter Tea Room 🍃
+      </button>
+    </form>
+
+    <!-- Signup Form -->
+    <form id="signup-form" class="space-y-4 hidden">
+      <div>
+        <label class="block text-xs font-bold text-matcha-800 mb-1">Email Address</label>
+        <input 
+          type="email" 
+          id="signup-email" 
+          required 
+          placeholder="tea.lover@example.com" 
+          class="w-full bg-tea-cream border border-tea-warm focus:border-matcha-500 rounded-2xl px-4 py-3 text-sm outline-none transition shadow-sm"
+        />
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-matcha-800 mb-1">Password</label>
+        <input 
+          type="password" 
+          id="signup-password" 
+          required 
+          placeholder="••••••••" 
+          class="w-full bg-tea-cream border border-tea-warm focus:border-matcha-500 rounded-2xl px-4 py-3 text-sm outline-none transition shadow-sm"
+        />
+      </div>
+      <button type="submit" class="w-full bg-matcha-500 hover:bg-matcha-800 text-white font-bold py-3 rounded-2xl transition shadow-md active:scale-95 text-sm">
+        Create My Account ✨
+      </button>
+    </form>
+
+    <!-- Status Alert Box -->
+    <div id="status-message" class="hidden mt-4 p-3 rounded-xl text-xs font-semibold text-center"></div>
+
+  </div>
+
+  <script>
+    const API_BASE = '/api';
+
+    const tabLogin = document.getElementById('tab-login');
+    const tabSignup = document.getElementById('tab-signup');
+    const loginForm = document.getElementById('login-form');
+    const signupForm = document.getElementById('signup-form');
+    const title = document.getElementById('card-title');
+    const subtitle = document.getElementById('card-subtitle');
+    const statusMsg = document.getElementById('status-message');
+
+    function showMessage(text, isError = false) {
+      statusMsg.textContent = text;
+      statusMsg.className = `mt-4 p-3 rounded-xl text-xs font-semibold text-center ${
+        isError ? 'bg-red-100 text-red-700 border border-red-200' : 'bg-matcha-100 text-matcha-800 border border-matcha-500/30'
+      }`;
+      statusMsg.classList.remove('hidden');
+    }
+
+    tabLogin.addEventListener('click', () => {
+      tabLogin.className = "flex-1 py-2 text-xs font-bold rounded-xl transition bg-white text-matcha-900 shadow-sm";
+      tabSignup.className = "flex-1 py-2 text-xs font-bold rounded-xl transition text-matcha-500 hover:text-matcha-900";
+      loginForm.classList.remove('hidden');
+      signupForm.classList.add('hidden');
+      title.textContent = "Welcome Back";
+      subtitle.textContent = "Log in to access your tea tasks & focus history";
+      statusMsg.classList.add('hidden');
+    });
+
+    tabSignup.addEventListener('click', () => {
+      tabSignup.className = "flex-1 py-2 text-xs font-bold rounded-xl transition bg-white text-matcha-900 shadow-sm";
+      tabLogin.className = "flex-1 py-2 text-xs font-bold rounded-xl transition text-matcha-500 hover:text-matcha-900";
+      signupForm.classList.remove('hidden');
+      loginForm.classList.add('hidden');
+      title.textContent = "Join the Tea Room";
+      subtitle.textContent = "Create an account to backup your tasks online";
+      statusMsg.classList.add('hidden');
+    });
+
+    // Login Submission
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('login-email').value;
+      const password = document.getElementById('login-password').value;
+
+      try {
+        const response = await fetch(`${API_BASE}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await response.json();
+
+        if (!response.ok) throw new Error(data.detail || 'Login failed');
+
+        localStorage.setItem('access_token', data.access_token);
+        showMessage('Login successful! Redirecting to Tea Room...');
+        setTimeout(() => window.location.href = '/', 1000);
+      } catch (err) {
+        showMessage(err.message, true);
+      }
+    });
+
+    // Signup Submission
+    signupForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('signup-email').value;
+      const password = document.getElementById('signup-password').value;
+
+      try {
+        const response = await fetch(`${API_BASE}/auth/signup`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await response.json();
+
+        if (!response.ok) throw new Error(data.detail || 'Signup failed');
+
+        showMessage('Account created! Switching to login...');
+        setTimeout(() => tabLogin.click(), 1200);
+      } catch (err) {
+        showMessage(err.message, true);
+      }
+    });
+  </script>
+</body>
+</html>

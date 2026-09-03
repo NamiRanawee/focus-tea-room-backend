@@ -1,0 +1,175 @@
+@import url('https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Nunito:wght@400;600;800&display=swap');
+
+:root {
+    --bg-cream: #FAF6EF;
+    --card-bg: #FFFFFF;
+    --text-dark: #4A3F35;
+    --text-muted: #8A7E72;
+    --matcha-green: #7D9D70;
+    --matcha-hover: #68855D;
+    --vintage-paper: #F4ECD8;
+    --border-light: #E8DFD5;
+}
+
+body {
+    background-color: var(--bg-cream);
+    color: var(--text-dark);
+    font-family: 'Nunito', sans-serif;
+    margin: 0;
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Header & Vintage Clock */
+.header-container {
+    width: 100%;
+    max-width: 900px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 40px;
+}
+
+h1 {
+    font-size: 2.5rem;
+    color: var(--matcha-green);
+    margin: 0;
+}
+
+.vintage-clock {
+    background-color: var(--vintage-paper);
+    padding: 10px 20px;
+    border: 2px dashed #C2B6A3;
+    border-radius: 8px;
+    font-family: 'Courier Prime', monospace;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #5C4A3D;
+    box-shadow: 2px 2px 8px rgba(0,0,0,0.05);
+}
+
+/* Main Dashboard Grid */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    width: 100%;
+    max-width: 900px;
+}
+
+.card {
+    background: var(--card-bg);
+    padding: 30px;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(74, 63, 53, 0.05);
+    border: 1px solid var(--border-light);
+}
+
+/* Timer Styles */
+.timer-display {
+    font-size: 5rem;
+    font-weight: 800;
+    text-align: center;
+    color: var(--text-dark);
+    margin: 20px 0;
+}
+
+.timer-controls {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+button {
+    background-color: var(--matcha-green);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 50px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s, background-color 0.2s;
+}
+
+button:hover {
+    background-color: var(--matcha-hover);
+    transform: translateY(-2px);
+}
+
+button.secondary {
+    background-color: var(--vintage-paper);
+    color: var(--text-dark);
+    border: 1px solid #C2B6A3;
+}
+button.secondary:hover {
+    background-color: #E6DCB8;
+}
+
+/* Todo List Styles */
+.todo-input-group {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+input[type="text"] {
+    flex: 1;
+    padding: 12px 20px;
+    border: 2px solid var(--border-light);
+    border-radius: 50px;
+    font-size: 1rem;
+    font-family: inherit;
+    outline: none;
+}
+
+input[type="text"]:focus {
+    border-color: var(--matcha-green);
+}
+
+ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+li {
+    display: flex;
+    align-items: center;
+    padding: 15px 0;
+    border-bottom: 1px solid var(--border-light);
+    font-size: 1.1rem;
+    cursor: pointer;
+}
+
+li.completed {
+    text-decoration: line-through;
+    color: var(--text-muted);
+}
+
+.checkbox {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--matcha-green);
+    border-radius: 50%;
+    margin-right: 15px;
+    display: inline-block;
+}
+
+li.completed .checkbox {
+    background-color: var(--matcha-green);
+}
+
+/* Archive Specific */
+.date-header {
+    background: var(--vintage-paper);
+    padding: 5px 15px;
+    border-radius: 20px;
+    display: inline-block;
+    font-size: 0.9rem;
+    font-weight: bold;
+    margin-top: 20px;
+    margin-bottom: 10px;
+}
