@@ -28,7 +28,8 @@ async function decryptData(encryptedObj, key) {
     return JSON.parse(dec.decode(decrypted));
 }
 
-let appData = { tasks: [], archivedTasks: [], sessions: [] };
+let appData = { tasks: [], archivedTasks: [], sessions: [], tags: [] };
+let selectedTag = null; 
 
 async function saveUserData() {
     if (!activeUsername || !activeCryptoKey) return;
@@ -39,15 +40,15 @@ async function saveUserData() {
 async function loadUserData() {
     const raw = localStorage.getItem(`tea_vault_${activeUsername}`);
     if (!raw) {
-        appData = { tasks: [], archivedTasks: [], sessions: [] };
+        appData = { tasks: [], archivedTasks: [], sessions: [], tags: [] };
         await saveUserData();
         return true;
     }
     try {
         const encryptedObj = JSON.parse(raw);
         appData = await decryptData(encryptedObj, activeCryptoKey);
-        // Ensure archivedTasks exists for older profiles
         if (!appData.archivedTasks) appData.archivedTasks = [];
+        if (!appData.tags) appData.tags = [];
         return true;
     } catch (e) { return false; }
 }
@@ -85,7 +86,7 @@ logoutBtn.addEventListener('click', () => {
     authModal.style.display = 'flex';
     logoutBtn.style.display = 'none';
     document.getElementById('auth-pin').value = '';
-    document.title = "Focus Tea Room V3.0";
+    document.title = "Focus Tea Room V3.5";
 });
 
 // --- Theme Switcher ---
@@ -107,6 +108,90 @@ function updateClocks() {
     document.getElementById('hand-hour').style.transform = `translateX(-50%) rotate(${hours * 30 + (mins / 2)}deg)`;
 }
 setInterval(updateClocks, 1000); updateClocks();
+
+// --- Tags Engine ---
+function renderTags() {
+    const list = document.getElementById('tags-list');
+    list.innerHTML = '';
+    appData.tags.forEach(tag => {
+        const div = document.createElement('div');
+        const isActive = selectedTag && selectedTag.id === tag.id;
+        div.className = `tag-item ${isActive ? 'active-selection' : ''}`;
+        div.innerHTML = `
+            <div class="tag-left"><span class="tag-dot" style="background:${tag.color}"></span>${tag.name}</div>
+            <button class="btn-delete" style="width: 22px; height: 22px; font-size: 11px;">x</button>
+        `;
+        
+        div.querySelector('.tag-left').addEventListener('click', () => {
+            selectedTag = isActive ? null : tag; 
+            updateActiveTagUI();
+            renderTags(); 
+        });
+        
+        div.querySelector('.btn-delete').addEventListener('click', async (e) => {
+            e.stopPropagation();
+            if (selectedTag && selectedTag.id === tag.id) { selectedTag = null; updateActiveTagUI(); }
+            appData.tags = appData.tags.filter(t => t.id !== tag.id);
+            await saveUserData(); renderTags();
+        });
+        
+        list.appendChild(div);
+    });
+}
+
+document.getElementById('add-tag-btn').addEventListener('click', async () => {
+    const nameInput = document.getElementById('new-tag-name');
+    const colorInput = document.getElementById('new-tag-color');
+    if (!nameInput.value.trim()) return;
+    
+    const newTag = { id: Date.now(), name: nameInput.value.trim(), color: colorInput.value };
+    appData.tags.push(newTag);
+    nameInput.value = '';
+    
+    await saveUserData();
+    renderTags();
+});
+
+function updateActiveTagUI() {
+    const dot = document.getElementById('active-tag-dot');
+    const text = document.getElementById('active-tag-text');
+    if (selectedTag) {
+        dot.style.background = selectedTag.color;
+        text.innerText = selectedTag.name;
+    } else {
+        dot.style.background = '#ccc';
+        text.innerText = "Untagged";
+    }
+}
+
+// --- Audio Controls ---
+const rainAudio = document.getElementById('rain-audio');
+const chimeAudio = document.getElementById('chime-audio');
+const btnRain = document.getElementById('btn-rain');
+const btnChime = document.getElementById('btn-chime');
+let isRainPlaying = false;
+let isChimeActive = true; 
+
+btnRain.addEventListener('click', () => {
+    if (!isRainPlaying) {
+        rainAudio.play().catch(e => console.log("Make sure rain.mp3 is in the folder!"));
+        btnRain.classList.add('active');
+        isRainPlaying = true;
+    } else {
+        rainAudio.pause();
+        btnRain.classList.remove('active');
+        isRainPlaying = false;
+    }
+});
+
+btnChime.addEventListener('click', () => {
+    isChimeActive = !isChimeActive;
+    if (isChimeActive) {
+        btnChime.classList.add('active');
+    } else {
+        btnChime.classList.remove('active');
+    }
+});
 
 // --- Timer Engine ---
 let timerInterval = null;
@@ -181,7 +266,11 @@ document.getElementById('start-btn').addEventListener('click', () => {
             document.title = `✨ Done! - Focus Tea Room`;
             document.getElementById('status-badge').innerText = "SESSION COMPLETE!";
             
-            // Record Session
+            if (isChimeActive) {
+                chimeAudio.play().catch(e => console.log("Make sure chime.mp3 is in the folder!"));
+            }
+            
+            // Record Session with Tag Snapshot
             const now = new Date();
             appData.sessions.unshift({
                 id: Date.now(),
@@ -191,7 +280,9 @@ document.getElementById('start-btn').addEventListener('click', () => {
                 dateStr: now.toISOString().split('T')[0],
                 timeStr: now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
                 monthStr: now.toLocaleString('default', { month: 'short' }),
-                yearNum: now.getFullYear()
+                yearNum: now.getFullYear(),
+                tagName: selectedTag ? selectedTag.name : "Untagged",
+                tagColor: selectedTag ? selectedTag.color : "#ccc"
             });
             await saveUserData();
             renderStats(); renderBrewLog();
@@ -209,7 +300,7 @@ document.getElementById('congrats-confirm-btn').addEventListener('click', () => 
         timeLeftSeconds = totalDurationSeconds;
         timeDisplay.innerText = formatTime(timeLeftSeconds);
         updateTeacupFill();
-        document.title = "Focus Tea Room V3.0";
+        document.title = "Focus Tea Room V3.5";
         document.getElementById('status-badge').innerText = "READY TO BREW";
     }, 380);
 });
@@ -227,7 +318,7 @@ document.getElementById('reset-btn').addEventListener('click', () => {
     timeLeftSeconds = totalDurationSeconds;
     timeDisplay.innerText = formatTime(timeLeftSeconds);
     updateTeacupFill();
-    document.title = "Focus Tea Room V3.0";
+    document.title = "Focus Tea Room V3.5";
     document.getElementById('status-badge').innerText = "READY TO BREW";
 });
 
@@ -245,18 +336,13 @@ async function renderTodos() {
             renderTodos(); 
         });
         
-        // When deleted, push to archive array first
         div.querySelector('.btn-delete').addEventListener('click', async (e) => { 
             e.stopPropagation(); 
-            appData.archivedTasks.unshift({ 
-                ...task, 
-                archivedAt: new Date().toISOString() 
-            });
+            appData.archivedTasks.unshift({ ...task, archivedAt: new Date().toISOString() });
             appData.tasks = appData.tasks.filter(t => t.id !== task.id); 
             await saveUserData(); 
             renderTodos(); 
         });
-        
         list.appendChild(div);
     });
 }
@@ -268,34 +354,16 @@ document.getElementById('add-todo-btn').addEventListener('click', async () => {
     input.value = ''; await saveUserData(); renderTodos();
 });
 
-// Archive Modal Logic
 const archiveModal = document.getElementById('archive-modal');
-document.getElementById('open-archive-btn').addEventListener('click', () => {
-    renderArchive();
-    archiveModal.style.display = 'flex';
-});
-
-document.getElementById('close-archive-btn').addEventListener('click', () => {
-    archiveModal.style.display = 'none';
-});
+document.getElementById('open-archive-btn').addEventListener('click', () => { renderArchive(); archiveModal.style.display = 'flex'; });
+document.getElementById('close-archive-btn').addEventListener('click', () => { archiveModal.style.display = 'none'; });
 
 function renderArchive() {
-    const list = document.getElementById('archive-list');
-    list.innerHTML = '';
-    
-    if (appData.archivedTasks.length === 0) {
-        list.innerHTML = '<div style="text-align:center; color:var(--text-muted); padding: 20px 0;">No packed tasks yet! Finish some work and send them here.</div>';
-        return;
-    }
-    
+    const list = document.getElementById('archive-list'); list.innerHTML = '';
+    if (appData.archivedTasks.length === 0) { list.innerHTML = '<div style="text-align:center; color:var(--text-muted); padding: 20px 0;">No packed tasks yet! Finish some work and send them here.</div>'; return; }
     appData.archivedTasks.forEach(task => {
         const dateStr = new Date(task.archivedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-        list.innerHTML += `
-            <div class="archive-item">
-                <span>${task.task}</span>
-                <span class="archive-date">${dateStr}</span>
-            </div>
-        `;
+        list.innerHTML += `<div class="archive-item"><span>${task.task}</span><span class="archive-date">${dateStr}</span></div>`;
     });
 }
 
@@ -327,33 +395,53 @@ function renderStats() {
 function renderBrewLog() {
     const logBody = document.getElementById('brew-log-body'); logBody.innerHTML = '';
     appData.sessions.slice(0, 5).forEach(s => {
-        logBody.innerHTML += `<tr><td>${s.timeStr}</td><td>${s.duration_minutes}m</td><td><span class="badge">DONE</span></td></tr>`;
+        const tagName = s.tagName || "Untagged";
+        const tagColor = s.tagColor || "#ccc";
+        logBody.innerHTML += `
+            <tr>
+                <td><span class="log-tag"><span class="tag-dot" style="background:${tagColor}"></span>${tagName}</span></td>
+                <td>${s.duration_minutes}m</td>
+                <td><span class="badge">DONE</span></td>
+            </tr>`;
     });
 }
-function renderAll() { renderTodos(); renderStats(); renderBrewLog(); updateTeacupFill(); }
 
-// --- The Sink ---
+function renderAll() { renderTodos(); renderStats(); renderBrewLog(); renderTags(); updateActiveTagUI(); updateTeacupFill(); }
+
+// --- Upgraded Cute Sink Dashboard ---
 document.getElementById('open-sink-btn').addEventListener('click', () => {
     const sinkTab = window.open('about:blank', '_blank'); 
     
     const monthStats = {};
+    const tagStats = {};
+    let totalTime = 0;
+    let totalTeacups = 0;
     let maxFocusTime = 0;
     let maxMonthKey = null;
-    let totalTeacups = 0;
+    let topTagKey = "None";
+    let topTagTime = 0;
 
     appData.sessions.forEach(s => {
         if (s.status !== 'Complete') return;
         totalTeacups++;
+        totalTime += s.duration_minutes;
+        
+        // Month Data
         const d = new Date(s.timestamp || s.dateStr);
         const mKey = d.toLocaleString('en-US', { month: 'short', year: 'numeric' });
-        
         if (!monthStats[mKey]) monthStats[mKey] = { cups: 0, time: 0 };
         monthStats[mKey].cups += 1;
         monthStats[mKey].time += s.duration_minutes;
+        if (monthStats[mKey].time > maxFocusTime) { maxFocusTime = monthStats[mKey].time; maxMonthKey = mKey; }
 
-        if (monthStats[mKey].time > maxFocusTime) {
-            maxFocusTime = monthStats[mKey].time;
-            maxMonthKey = mKey;
+        // Tag Data
+        const tName = s.tagName || "Untagged";
+        const tColor = s.tagColor || "#ccc";
+        if (!tagStats[tName]) tagStats[tName] = { time: 0, color: tColor };
+        tagStats[tName].time += s.duration_minutes;
+        if (tagStats[tName].time > topTagTime && tName !== "Untagged") {
+            topTagTime = tagStats[tName].time;
+            topTagKey = tName;
         }
     });
 
@@ -361,57 +449,168 @@ document.getElementById('open-sink-btn').addEventListener('click', () => {
     <!DOCTYPE html>
     <html lang="en">
     <head>
-        <title>The Sink - Focus Tea Room</title>
+        <title>My Focus Sink - Tea Room</title>
         <style>
-            @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800&display=swap');
-            body { font-family: 'Nunito', sans-serif; background: #fcfaff; color: #4b5563; padding: 40px; margin: 0; text-align: center; }
-            .header-box { background: white; border-radius: 30px; padding: 30px; margin: 0 auto 30px auto; max-width: 800px; box-shadow: 0 20px 50px rgba(155, 102, 255, 0.1); border: 2px solid #ede6ff; }
-            h1 { color: #9b66ff; margin: 0 0 10px 0; font-size: 32px; font-weight: 800; }
-            .total-badge { display: inline-block; background: #9b66ff; color: white; padding: 10px 24px; border-radius: 25px; font-weight: 800; font-size: 18px; box-shadow: 0 8px 20px rgba(155, 102, 255, 0.3); }
+            @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+            body { 
+                font-family: 'Nunito', sans-serif; 
+                background: linear-gradient(180deg, #e0f7fa 0%, #b2ebf2 100%); 
+                color: #374151; 
+                margin: 0; 
+                padding: 40px; 
+                min-height: 100vh;
+                position: relative;
+                overflow-x: hidden;
+            }
+            .container { max-width: 1000px; margin: 0 auto; position: relative; z-index: 10; padding-bottom: 120px; }
             
-            .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; max-width: 900px; margin: 0 auto; }
-            .month-card { background: white; border-radius: 25px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); border: 2px solid #f3f4f6; position: relative; transition: transform 0.2s; }
-            .month-card:hover { transform: translateY(-5px); border-color: #ede6ff; }
-            .month-card.max-month { border-color: #9b66ff; background: #fcfaff; }
+            /* Wave Animation Classes */
+            .ocean { height: 120px; width: 100%; position: fixed; bottom: 0; left: 0; background: transparent; z-index: 1; }
+            .wave {
+                background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="%23ffffff" fill-opacity="0.6" d="M0,160L48,170.7C96,181,192,203,288,197.3C384,192,480,160,576,165.3C672,171,768,213,864,224C960,235,1056,213,1152,186.7C1248,160,1344,128,1392,112L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>');
+                background-size: 1000px 120px;
+                position: absolute; width: 200%; height: 100%; bottom: 0;
+                animation: wave 10s linear infinite;
+                transform: translate3d(0, 0, 0);
+            }
+            .wave:nth-of-type(2) {
+                bottom: -15px; animation: wave 18s linear reverse infinite; opacity: 0.8;
+                background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="%23ffffff" fill-opacity="0.9" d="M0,128L48,144C96,160,192,192,288,192C384,192,480,160,576,144C672,128,768,128,864,149.3C960,171,1056,213,1152,213.3C1248,213,1344,171,1392,149.3L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>');
+            }
+            @keyframes wave { 0% { margin-left: 0; } 100% { margin-left: -1000px; } }
+
+            /* Header */
+            .header-panel { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+            .header-left h1 { color: #0f766e; margin: 0 0 5px 0; font-size: 28px; font-weight: 800; display: flex; align-items: center; gap: 10px; }
+            .header-left p { color: #0d9488; margin: 0; font-weight: 700; }
             
-            .sticker { font-size: 45px; display: block; margin-bottom: 10px; }
-            .month-title { font-weight: 800; font-size: 18px; color: #4b5563; margin-bottom: 5px; }
-            .month-stats { font-size: 14px; color: #9ca3af; font-weight: 700; }
+            /* Stat Cards Row */
+            .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 40px; }
+            .stat-card { background: rgba(255,255,255,0.9); padding: 24px; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border: 2px solid white; display: flex; align-items: center; gap: 15px; transition: transform 0.2s; backdrop-filter: blur(10px); }
+            .stat-card:hover { transform: translateY(-3px); }
+            .stat-icon { font-size: 30px; background: #e0f2fe; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; border-radius: 20px; }
+            .stat-info h3 { margin: 0; font-size: 13px; color: #6b7280; text-transform: uppercase; letter-spacing: 1px; font-weight: 800; }
+            .stat-info p { margin: 5px 0 0 0; font-size: 22px; font-weight: 800; color: #111827; }
+
+            /* Split Layout: Months vs Tags */
+            .main-content { display: grid; grid-template-columns: 2fr 1fr; gap: 30px; }
+            .section-title { font-size: 16px; font-weight: 800; color: #115e59; margin: 0 0 20px 0; border-bottom: 2px dashed #99f6e4; padding-bottom: 10px; }
+            
+            /* Months Grid */
+            .months-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; }
+            .month-card { background: rgba(255,255,255,0.9); border-radius: 20px; padding: 20px; border: 2px solid white; position: relative; text-align: center; box-shadow: 0 8px 25px rgba(0,0,0,0.03); backdrop-filter: blur(10px); }
+            .month-card.max { border: 2px solid #06b6d4; background: white; }
+            .m-sticker { font-size: 40px; margin-bottom: 10px; display: block; animation: float 3s ease-in-out infinite; }
+            @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+            
+            .m-title { font-weight: 800; font-size: 15px; color: #374151; }
+            .m-sub { font-size: 12px; color: #6b7280; font-weight: 700; margin-top: 4px; }
+            .m-bar { height: 8px; background: #e5e7eb; border-radius: 4px; margin-top: 15px; overflow: hidden; }
+            .m-fill { height: 100%; background: #06b6d4; border-radius: 4px; }
+
+            /* Tag Analytics */
+            .tag-analytics { background: rgba(255,255,255,0.9); border-radius: 24px; padding: 24px; border: 2px solid white; box-shadow: 0 10px 30px rgba(0,0,0,0.05); backdrop-filter: blur(10px); }
+            .tag-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; font-size: 14px; font-weight: 700; }
+            .t-left { display: flex; align-items: center; gap: 10px; color: #374151; }
+            .t-dot { width: 14px; height: 14px; border-radius: 50%; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+            .t-right { color: #6b7280; background: white; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 800; }
         </style>
     </head>
     <body>
-        <div class="header-box">
-            <h1>🧽 The Teacup Sink</h1>
-            <p style="color: #9ca3af; font-size: 16px; margin-bottom: 20px; font-weight: 700;">Every session leaves a cup. Let's see how much you've brewed!</p>
-            <div class="total-badge">Total Cups Washed: ${totalTeacups} ☕</div>
+        <div class="ocean">
+            <div class="wave"></div>
+            <div class="wave"></div>
         </div>
+        
+        <div class="container">
+            <div class="header-panel">
+                <div class="header-left">
+                    <h1><span>🧽</span> The Sink Dashboard</h1>
+                    <p>A clean overview of your focus habits.</p>
+                </div>
+            </div>
 
-        <div class="grid">
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="stat-icon">☕</div>
+                    <div class="stat-info"><h3>Total Brews</h3><p>${totalTeacups} Cups</p></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">⏱️</div>
+                    <div class="stat-info"><h3>Focus Time</h3><p>${Math.floor(totalTime/60)}h ${totalTime%60}m</p></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🏆</div>
+                    <div class="stat-info"><h3>Top Tag</h3><p>${topTagKey}</p></div>
+                </div>
+            </div>
+
+            <div class="main-content">
+                <div>
+                    <h2 class="section-title">Monthly Focus Tracker</h2>
+                    <div class="months-grid">
     `;
 
     const monthsList = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     const currentYear = new Date().getFullYear();
 
+    // Render Month Cards with Cute Tiered Images
     monthsList.forEach(m => {
         const fullKey = `${m} ${currentYear}`;
         const stats = monthStats[fullKey] || { cups: 0, time: 0 };
         const isMax = (fullKey === maxMonthKey && stats.cups > 0);
         
-        let sticker = "🕸️"; 
-        if (isMax) sticker = "🛁☕☕☕"; 
-        else if (stats.cups > 10) sticker = "🧼☕☕"; 
-        else if (stats.cups > 0) sticker = "🧽☕"; 
+        // Cute Tier System Logic
+        let sticker = "🕸️💤"; // Tier 0 (Empty)
+        if (isMax) sticker = "🐰🏆"; // Champion (Highest Month)
+        else if (stats.cups >= 15) sticker = "🦊✨"; // Tier 1 (Very High)
+        else if (stats.cups >= 8) sticker = "🐻🍯"; // Tier 2 (High/Steady)
+        else if (stats.cups >= 3) sticker = "🐢🌱"; // Tier 3 (Medium)
+        else if (stats.cups > 0) sticker = "🐌🍃"; // Tier 4 (Just started)
+        
+        const fillPercent = maxFocusTime > 0 ? (stats.time / maxFocusTime) * 100 : 0;
 
         html += `
-            <div class="month-card ${isMax ? 'max-month' : ''}">
-                <div class="sticker">${sticker}</div>
-                <div class="month-title">${m} ${currentYear}</div>
-                <div class="month-stats">${stats.cups} Cups • ${Math.floor(stats.time/60)}h ${stats.time%60}m</div>
+            <div class="month-card ${isMax ? 'max' : ''}">
+                <div class="m-sticker">${sticker}</div>
+                <div class="m-title">${fullKey}</div>
+                <div class="m-sub">${stats.cups} Cups • ${Math.floor(stats.time/60)}h ${stats.time%60}m</div>
+                <div class="m-bar"><div class="m-fill" style="width: ${fillPercent}%;"></div></div>
             </div>
         `;
     });
 
-    html += `</div></body></html>`;
+    html += `
+                    </div>
+                </div>
+                <div>
+                    <h2 class="section-title">Tag Breakdown</h2>
+                    <div class="tag-analytics">
+    `;
+    
+    // Render Tags in Sink
+    const sortedTags = Object.entries(tagStats).sort((a, b) => b[1].time - a[1].time);
+    if (sortedTags.length === 0) {
+        html += `<div style="color: #9ca3af; text-align: center; padding: 20px 0;">No tagged sessions yet.</div>`;
+    } else {
+        sortedTags.forEach(([tName, tData]) => {
+            html += `
+                <div class="tag-row">
+                    <div class="t-left"><span class="t-dot" style="background: ${tData.color}"></span>${tName}</div>
+                    <div class="t-right">${Math.floor(tData.time/60)}h ${tData.time%60}m</div>
+                </div>
+            `;
+        });
+    }
+
+    html += `
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+    </html>
+    `;
     
     sinkTab.document.write(html);
     sinkTab.document.close();

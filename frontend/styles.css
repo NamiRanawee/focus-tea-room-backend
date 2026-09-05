@@ -45,30 +45,16 @@ body {
     border: 1px solid var(--primary-soft);
 }
 
-.bounce-tea {
-    font-size: 55px; margin-bottom: 10px;
-    animation: bounce 2s infinite ease-in-out;
-}
-@keyframes bounce { 
-    0%, 100% { transform: translateY(0); } 
-    50% { transform: translateY(-8px); } 
-}
+.bounce-tea { font-size: 55px; margin-bottom: 10px; animation: bounce 2s infinite ease-in-out; }
+@keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
 
 .auth-form { display: flex; flex-direction: column; gap: 14px; margin-top: 15px; }
-.auth-form input {
-    padding: 14px 20px; border-radius: 20px; border: 2px solid var(--primary-soft);
-    background: var(--bg-main); font-family: inherit; font-size: 15px; 
-    text-align: center; font-weight: 700; transition: all 0.3s ease;
-}
+.auth-form input { padding: 14px 20px; border-radius: 20px; border: 2px solid var(--primary-soft); background: var(--bg-main); font-family: inherit; font-size: 15px; text-align: center; font-weight: 700; transition: all 0.3s ease; }
 .auth-form input:focus { border-color: var(--primary); background: white; outline: none; transform: scale(1.02); }
 .auth-error { color: var(--btn-reset-text); font-size: 13px; font-weight: 700; min-height: 18px; }
 
 /* Bubble Pop Animation */
-@keyframes bubblePopOut {
-    0% { transform: scale(1); opacity: 1; }
-    30% { transform: scale(1.1); opacity: 1; }
-    100% { transform: scale(0.3); opacity: 0; }
-}
+@keyframes bubblePopOut { 0% { transform: scale(1); opacity: 1; } 30% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(0.3); opacity: 0; } }
 .pop-out { animation: bubblePopOut 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
 
 /* General UI */
@@ -83,14 +69,29 @@ body {
 .btn-primary:hover { transform: translateY(-2px); }
 .btn-subtle { background: var(--primary-soft); color: var(--primary); border: none; padding: 8px 16px; border-radius: 16px; font-weight: 700; cursor: pointer; transition: background 0.2s; }
 .btn-subtle:hover { background: var(--primary); color: white; }
-.btn-sink { background: var(--primary); color: white; border: none; padding: 12px 24px; border-radius: 25px; font-weight: 800; cursor: pointer; transition: transform 0.2s; box-shadow: 0 8px 20px var(--primary-soft); }
-.btn-sink:hover { transform: scale(1.05); }
+.btn-sink { background: var(--primary); color: white; border: none; padding: 12px 0; width: 100%; border-radius: 20px; font-weight: 800; font-size: 15px; cursor: pointer; transition: transform 0.2s; box-shadow: 0 8px 20px var(--primary-soft); }
+.btn-sink:hover { transform: scale(1.03); }
 
 .dashboard-grid { display: grid; grid-template-columns: 280px 1fr 340px; gap: 20px; max-width: 1100px; margin: 0 auto; }
 .cute-card { background: var(--card-bg); border-radius: 28px; padding: 24px; box-shadow: 0 10px 40px rgba(155, 102, 255, 0.08); margin-bottom: 20px; text-align: center; }
 .card-header { font-size: 12px; font-weight: 800; color: var(--text-muted); letter-spacing: 1px; display: flex; justify-content: space-between; margin-bottom: 20px; }
 
-/* Clock & Tea Engine */
+/* Tags System */
+.tag-input-group { display: flex; gap: 8px; margin-bottom: 12px; }
+.color-picker-wrapper { width: 36px; height: 36px; border-radius: 12px; overflow: hidden; border: 2px solid var(--border-soft); flex-shrink: 0; }
+.color-picker-wrapper input[type="color"] { border: none; width: 150%; height: 150%; margin: -25%; cursor: pointer; }
+.tag-input-group input[type="text"] { flex: 1; padding: 8px 12px; border-radius: 12px; border: 2px solid var(--border-soft); font-family: inherit; font-weight: 600; font-size: 13px; }
+
+.tags-container { display: flex; flex-direction: column; gap: 8px; text-align: left; max-height: 150px; overflow-y: auto; padding-right: 5px; }
+.tag-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; border-radius: 12px; background: var(--bg-main); border: 2px solid transparent; cursor: pointer; transition: all 0.2s; }
+.tag-item:hover { border-color: var(--border-soft); }
+.tag-item.active-selection { border-color: var(--primary); background: var(--primary-soft); }
+.tag-left { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 13px; color: var(--text-dark); }
+.tag-dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+
+.active-tag-display { display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: var(--bg-main); border: 2px solid var(--border-soft); padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: 700; color: var(--text-dark); margin: 0 auto 15px auto; }
+
+/* Clock & Stats */
 .analog-clock-container { width: 140px; height: 140px; border-radius: 50%; border: 4px solid var(--primary-soft); margin: 0 auto 15px auto; position: relative; }
 .clock-num { position: absolute; color: var(--primary); font-weight: 800; font-size: 13px; }
 .clock-12 { top: 8px; left: 50%; transform: translateX(-50%); }
@@ -107,7 +108,8 @@ body {
 .pill { padding: 6px 12px; border-radius: 12px; font-size: 12px; font-weight: 800; color: var(--text-muted); background: var(--bg-main); border: none; cursor: pointer; }
 .pill.active { background: var(--primary); color: white; box-shadow: 0 4px 10px var(--primary-soft); }
 
-.tea-container { display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 10px 0; height: 145px; }
+/* Tea Engine */
+.tea-container { display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 5px 0; height: 145px; }
 .steam-svg { height: 25px; overflow: visible; }
 .steam-line { opacity: 0; }
 .brewing .steam-line { animation: riseSteam 2s infinite ease-in-out; }
@@ -117,27 +119,28 @@ body {
 @keyframes teacupWiggle { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
 #tea-liquid-fill { transition: y 0.5s linear, height 0.5s linear; }
 
-/* Timer */
+/* Timer Controls & Alignment */
 .status-pill { display: inline-block; background: var(--primary-soft); color: var(--primary); font-size: 13px; font-weight: 800; padding: 6px 16px; border-radius: 20px; margin-bottom: 10px; }
-.preset-row { display: flex; justify-content: center; gap: 8px; margin: 10px 0 10px 0; }
-.preset-btn { background: var(--bg-main); color: var(--text-dark); border: 2px solid var(--border-soft); padding: 8px 16px; border-radius: 16px; font-weight: 800; cursor: pointer; transition: all 0.2s; }
+
+.preset-row { display: flex; justify-content: space-between; gap: 8px; width: 100%; margin: 10px 0 10px 0; }
+.preset-btn { flex: 1; background: var(--bg-main); color: var(--text-dark); border: 2px solid var(--border-soft); padding: 8px 0; border-radius: 16px; font-weight: 800; font-size: 13px; cursor: pointer; transition: all 0.2s; }
 .preset-btn.active { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 4px 12px var(--primary-soft); }
 
-.custom-time-box { display: flex; justify-content: center; gap: 8px; margin-bottom: 10px; }
-.custom-time-box input { width: 80px; padding: 8px 12px; border-radius: 14px; border: 2px solid var(--border-soft); text-align: center; font-weight: 800; font-family: inherit; }
-.custom-time-box button { border-radius: 14px; }
+.custom-time-box { display: flex; gap: 8px; width: 100%; margin-bottom: 10px; }
+.custom-time-box input { flex: 1; padding: 8px 12px; border-radius: 14px; border: 2px solid var(--border-soft); text-align: center; font-weight: 800; font-family: inherit; }
+.custom-time-box button { flex: 1; border-radius: 14px; }
 
-.timer-display { font-size: 4.5rem; font-weight: 800; color: var(--text-dark); margin: 5px 0 15px 0; letter-spacing: -2px; }
+.timer-display { font-size: 4.5rem; font-weight: 800; color: var(--text-dark); margin: 0 0 15px 0; letter-spacing: -2px; }
 
-.main-controls { display: flex; justify-content: center; gap: 12px; margin-bottom: 20px; }
-.main-controls button { padding: 12px 26px; border-radius: 22px; font-weight: 800; font-size: 15px; border: none; cursor: pointer; transition: transform 0.2s; }
+.main-controls { display: flex; gap: 10px; width: 100%; margin-bottom: 15px; }
+.main-controls button { flex: 1; padding: 12px 0; border-radius: 20px; font-weight: 800; font-size: 14px; border: none; cursor: pointer; transition: transform 0.2s; }
 .main-controls button:hover { transform: translateY(-2px); }
-.btn-start { background: var(--primary); color: white; box-shadow: 0 8px 20px var(--primary-soft); }
+.btn-start { background: var(--primary); color: white; box-shadow: 0 6px 15px var(--primary-soft); }
 .btn-pause { background: var(--btn-pause-bg); color: var(--btn-pause-text); }
 .btn-reset { background: var(--btn-reset-bg); color: var(--btn-reset-text); }
 
-.audio-controls { display: flex; justify-content: center; gap: 10px; font-size: 12px; font-weight: 700; }
-.audio-btn { background: var(--bg-main); border: 2px solid var(--border-soft); color: var(--text-muted); cursor: pointer; padding: 6px 12px; border-radius: 16px; transition: all 0.2s; }
+.audio-controls { display: flex; gap: 10px; width: 100%; font-size: 13px; font-weight: 700; }
+.audio-btn { flex: 1; background: var(--bg-main); border: 2px solid var(--border-soft); color: var(--text-muted); cursor: pointer; padding: 8px 0; border-radius: 16px; transition: all 0.2s; display: flex; justify-content: center; align-items: center; gap: 5px;}
 .audio-btn.active { background: var(--primary-soft); border-color: var(--primary-soft); color: var(--primary); }
 
 /* Tasks, Archive & Table */
@@ -162,4 +165,5 @@ body {
 .brew-table { width: 100%; border-collapse: collapse; font-size: 13px; font-weight: 600; text-align: left; }
 .brew-table th { color: var(--text-muted); font-size: 11px; font-weight: 800; padding-bottom: 10px; border-bottom: 2px solid var(--border-soft); }
 .brew-table td { padding: 10px 0; color: var(--text-dark); border-bottom: 1px solid var(--border-soft); }
+.log-tag { display: inline-flex; align-items: center; gap: 5px; padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 800; background: var(--bg-main); border: 1px solid var(--border-soft); }
 .badge { padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 800; background: var(--primary-soft); color: var(--primary); }
